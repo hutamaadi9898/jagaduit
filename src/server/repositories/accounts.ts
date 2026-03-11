@@ -1,9 +1,10 @@
 import { generateId } from "lucia";
 
+import type { DbClient } from "@/server/db/client";
 import { mapAccount, now } from "@/server/db/helpers";
 import type { AccountType } from "@/types/app";
 
-export async function listAccounts(db: D1Database, userId: string, includeArchived = true) {
+export async function listAccounts(db: DbClient, userId: string, includeArchived = true) {
   const query = includeArchived
     ? "SELECT * FROM accounts WHERE user_id = ? ORDER BY is_archived ASC, is_default DESC, created_at ASC"
     : "SELECT * FROM accounts WHERE user_id = ? AND is_archived = 0 ORDER BY is_default DESC, created_at ASC";
@@ -12,7 +13,7 @@ export async function listAccounts(db: D1Database, userId: string, includeArchiv
   return results.map(mapAccount);
 }
 
-export async function getAccountById(db: D1Database, userId: string, accountId: string) {
+export async function getAccountById(db: DbClient, userId: string, accountId: string) {
   const row = await db
     .prepare("SELECT * FROM accounts WHERE id = ? AND user_id = ? LIMIT 1")
     .bind(accountId, userId)
@@ -21,7 +22,7 @@ export async function getAccountById(db: D1Database, userId: string, accountId: 
   return row ? mapAccount(row) : null;
 }
 
-export async function getDefaultAccount(db: D1Database, userId: string) {
+export async function getDefaultAccount(db: DbClient, userId: string) {
   const row = await db
     .prepare(
       "SELECT * FROM accounts WHERE user_id = ? AND is_default = 1 AND is_archived = 0 LIMIT 1"
@@ -33,7 +34,7 @@ export async function getDefaultAccount(db: D1Database, userId: string) {
 }
 
 export async function createAccount(
-  db: D1Database,
+  db: DbClient,
   userId: string,
   input: { name: string; type: AccountType; color: string; isDefault?: boolean }
 ) {
@@ -74,7 +75,7 @@ export async function createAccount(
 }
 
 export async function updateAccount(
-  db: D1Database,
+  db: DbClient,
   userId: string,
   accountId: string,
   input: { name?: string; type?: AccountType; color?: string; isDefault?: boolean }
@@ -138,7 +139,7 @@ export async function updateAccount(
   return getAccountById(db, userId, accountId);
 }
 
-export async function archiveAccount(db: D1Database, userId: string, accountId: string) {
+export async function archiveAccount(db: DbClient, userId: string, accountId: string) {
   const current = await getAccountById(db, userId, accountId);
 
   if (!current) {

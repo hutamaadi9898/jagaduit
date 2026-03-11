@@ -1,11 +1,11 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import AppLayout from "@/layouts/AppLayout.astro";
-import { MutationButton } from "@/components/app/mutation-button";
+import MerchantLogo from "@/components/app/merchant-logo.astro";
 import RouteErrorState from "@/components/app/route-error-state.astro";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatCurrency, formatDateLabel, monthFromDate } from "@/lib/utils";
+import TransactionListItem from "@/components/app/transaction-list-item.astro";
+import { listCommonMerchantBrands } from "@/lib/merchant-brands";
+import { formatCompactCurrency, formatDateLabel, formatMonthLabel, monthFromDate } from "@/lib/utils";
 import { getDb } from "@/server/db/client";
 import { logError } from "@/server/observability";
 import { listAccounts } from "@/server/repositories/accounts";
@@ -51,106 +51,175 @@ const groupedTransactions = Object.entries(
     return acc;
   }, {})
 );
+
+const totalIncome = transactions
+  .filter((item) => item.kind === "income")
+  .reduce((sum, item) => sum + item.amountMinor, 0);
+const totalExpense = transactions
+  .filter((item) => item.kind === "expense")
+  .reduce((sum, item) => sum + item.amountMinor, 0);
+const netFlow = totalIncome - totalExpense;
+const merchantCatalog = listCommonMerchantBrands().slice(0, 18).map((merchant) => ({
+  ...merchant,
+  label: merchant.name,
+  matchSource: "brand" as const
+}));
 ---
 
 <BaseLayout title="Transaksi | KitaCuan">
-  <AppLayout title="Histori transaksi" currentPath={Astro.url.pathname}>
+  <AppLayout title="Report transaksi" currentPath={Astro.url.pathname}>
     {
       loadError ? (
         <RouteErrorState title="Histori lagi gangguan" message={loadError} />
       ) : (
-    <section class="grid gap-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>Filter bulan aktif</CardTitle>
-          <CardDescription>Simpan filter di URL supaya tampilan gampang diulang.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5" method="GET">
-            <input class="h-12 rounded-[1.2rem] border border-border bg-white/80 px-4 text-sm" type="month" name="month" value={filters.month} />
-            <select class="h-12 rounded-[1.2rem] border border-border bg-white/80 px-4 text-sm" name="kind">
-              <option value="all" selected={filters.kind === "all"}>Semua</option>
-              <option value="expense" selected={filters.kind === "expense"}>Pengeluaran</option>
-              <option value="income" selected={filters.kind === "income"}>Pemasukan</option>
-            </select>
-            <select class="h-12 rounded-[1.2rem] border border-border bg-white/80 px-4 text-sm" name="accountId">
-              <option value="">Semua akun</option>
-              {accounts.map((account) => <option value={account.id} selected={filters.accountId === account.id}>{account.name}</option>)}
-            </select>
-            <select class="h-12 rounded-[1.2rem] border border-border bg-white/80 px-4 text-sm" name="categoryId">
-              <option value="">Semua kategori</option>
-              {categories.map((category) => <option value={category.id} selected={filters.categoryId === category.id}>{category.name}</option>)}
-            </select>
-            <input class="h-12 rounded-[1.2rem] border border-border bg-white/80 px-4 text-sm" type="search" name="query" value={filters.query} placeholder="Cari catatan..." />
-            <button class="rounded-[1.2rem] bg-primary px-4 py-3 font-semibold text-primary-foreground sm:col-span-2 lg:col-span-5">Terapkan filter</button>
-          </form>
-        </CardContent>
-      </Card>
+        <section class="grid gap-4">
+          <div class="grid gap-4 lg:grid-cols-[1.02fr_0.98fr]">
+            <div class="hero-aurora relative overflow-hidden rounded-[2.2rem] px-5 py-5 text-white">
+              <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.24),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.12),transparent_25%)]"></div>
+              <div class="relative">
+                <div class="flex items-center justify-between gap-3">
+                  <div>
+                    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-white/75">Monthly report</p>
+                    <h2 class="mt-2 text-3xl font-bold">{formatMonthLabel(filters.month)}</h2>
+                  </div>
+                  <span class="data-pill">{transactions.length} entries</span>
+                </div>
 
-      <div class="flex justify-end">
-        <a class="rounded-[1.2rem] bg-foreground px-4 py-3 text-sm font-semibold text-white" href="/app/transactions/new">Tambah transaksi</a>
-      </div>
+                <div class="mt-8 grid gap-3 sm:grid-cols-3">
+                  <div class="rounded-[1.4rem] bg-white/14 px-4 py-3 backdrop-blur">
+                    <p class="text-xs text-white/75">Income</p>
+                    <p class="mt-2 text-xl font-bold">{formatCompactCurrency(totalIncome)}</p>
+                  </div>
+                  <div class="rounded-[1.4rem] bg-white/14 px-4 py-3 backdrop-blur">
+                    <p class="text-xs text-white/75">Expense</p>
+                    <p class="mt-2 text-xl font-bold">{formatCompactCurrency(totalExpense)}</p>
+                  </div>
+                  <div class="rounded-[1.4rem] bg-white/14 px-4 py-3 backdrop-blur">
+                    <p class="text-xs text-white/75">Net</p>
+                    <p class="mt-2 text-xl font-bold">{formatCompactCurrency(netFlow)}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-      {
-        groupedTransactions.length === 0 ? (
-          <Card>
-            <CardContent className="py-10 text-center text-muted-foreground">
-              <p class="font-semibold text-foreground">Belum ada transaksi untuk filter ini.</p>
-              <p class="mt-2">Coba ganti filter atau langsung tambah transaksi baru buat mulai isi histori.</p>
-              <a class="mt-4 inline-flex rounded-full bg-foreground px-4 py-2 text-xs font-semibold text-white" href="/app/transactions/new">
-                Tambah transaksi
-              </a>
-            </CardContent>
-          </Card>
-        ) : (
-          groupedTransactions.map(([date, items]) => (
-            <Card>
-              <CardHeader>
-                <CardTitle>{formatDateLabel(date)}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {items.map((item) => (
-                  <article class="flex flex-col gap-3 rounded-[1.6rem] bg-muted/70 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div class="flex items-center gap-3">
-                      <span class="h-3 w-3 rounded-full" style={`background:${item.categoryColor}`}></span>
-                      <div>
-                        <div class="flex items-center gap-2">
-                          <p class="font-semibold">{item.categoryName}</p>
-                          <Badge variant={item.kind === "income" ? "secondary" : "default"}>
-                            {item.kind === "income" ? "Pemasukan" : "Pengeluaran"}
-                          </Badge>
-                        </div>
-                        <p class="text-sm text-muted-foreground">{item.accountName} • {item.note || "Tanpa catatan"}</p>
-                      </div>
+            <div class="soft-section">
+              <div class="flex items-center justify-between gap-3">
+                <div>
+                  <p class="text-xs font-semibold uppercase tracking-[0.2em] text-primary/55">Filters</p>
+                  <h3 class="mt-2 text-xl font-bold text-foreground">Tune the view</h3>
+                </div>
+                <a href="/app/transactions/new" class="frost-pill">
+                  Add new
+                </a>
+              </div>
+
+              <form class="mt-4 grid gap-3 sm:grid-cols-2" method="GET">
+                <input
+                  class="h-12 rounded-[1.2rem] border border-border bg-card/80 px-4 text-sm"
+                  type="month"
+                  name="month"
+                  value={filters.month}
+                />
+                <select
+                  class="h-12 rounded-[1.2rem] border border-border bg-card/80 px-4 text-sm"
+                  name="kind"
+                >
+                  <option value="all" selected={filters.kind === "all"}>Semua</option>
+                  <option value="expense" selected={filters.kind === "expense"}>Pengeluaran</option>
+                  <option value="income" selected={filters.kind === "income"}>Pemasukan</option>
+                </select>
+                <select
+                  class="h-12 rounded-[1.2rem] border border-border bg-card/80 px-4 text-sm"
+                  name="accountId"
+                >
+                  <option value="">Semua akun</option>
+                  {accounts.map((account) => <option value={account.id} selected={filters.accountId === account.id}>{account.name}</option>)}
+                </select>
+                <select
+                  class="h-12 rounded-[1.2rem] border border-border bg-card/80 px-4 text-sm"
+                  name="categoryId"
+                >
+                  <option value="">Semua kategori</option>
+                  {categories.map((category) => <option value={category.id} selected={filters.categoryId === category.id}>{category.name}</option>)}
+                </select>
+                <input
+                  class="h-12 rounded-[1.2rem] border border-border bg-card/80 px-4 text-sm sm:col-span-2"
+                  type="search"
+                  name="query"
+                  value={filters.query}
+                  placeholder="Cari catatan atau pola transaksi"
+                />
+                <button class="h-12 rounded-[1.2rem] bg-[linear-gradient(135deg,#8c65f1,#b18cf8)] px-4 text-sm font-semibold text-white shadow-[0_12px_28px_rgba(140,101,241,0.24)] sm:col-span-2">
+                  Terapkan filter
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <div class="soft-section">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-primary/55">Merchant atlas</p>
+                <h3 class="mt-2 text-xl font-bold text-foreground">Common Gen Z picks</h3>
+                <p class="mt-1 text-sm text-muted-foreground">
+                  Wallet, commerce, coffee, convenience, and fast-food brands ready for automatic matching.
+                </p>
+              </div>
+              <span class="frost-pill">{merchantCatalog.length} brands</span>
+            </div>
+
+            <div class="merchant-chip-grid mt-4">
+              {merchantCatalog.map((merchant) => (
+                <div class="merchant-chip">
+                  <MerchantLogo merchant={merchant} size="sm" />
+                  <div class="min-w-0">
+                    <p class="truncate text-sm font-semibold text-foreground">{merchant.name}</p>
+                    <p class="truncate text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                      {merchant.category}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {
+            groupedTransactions.length === 0 ? (
+              <div class="soft-section text-center text-muted-foreground">
+                <p class="font-semibold text-foreground">Belum ada transaksi untuk filter ini.</p>
+                <p class="mt-2">Coba ganti filter atau tambah transaksi baru supaya report mulai terisi.</p>
+                <a
+                  class="app-solid-button mt-4 text-xs"
+                  href="/app/transactions/new"
+                >
+                  Tambah transaksi
+                </a>
+              </div>
+            ) : (
+              groupedTransactions.map(([date, items]) => (
+                <div class="soft-section">
+                  <div class="flex items-center justify-between gap-3">
+                    <div>
+                      <p class="text-xs font-semibold uppercase tracking-[0.2em] text-primary/55">Daily log</p>
+                      <h3 class="mt-2 text-xl font-bold text-foreground">{formatDateLabel(date)}</h3>
                     </div>
-                    <div class="flex flex-col items-start gap-2 sm:items-end">
-                      <p class:list={["text-lg font-bold", item.kind === "income" ? "text-green-600" : "text-destructive"]}>
-                        {item.kind === "income" ? "+" : "-"}{formatCurrency(item.amountMinor)}
-                      </p>
-                      <div class="flex gap-2">
-                        <a class="inline-flex h-10 items-center rounded-2xl border border-border bg-white/80 px-3 text-xs font-semibold" href={`/app/transactions/new?edit=${item.id}`}>
-                          Edit
-                        </a>
-                        <MutationButton
-                          endpoint={`/api/transactions/${item.id}`}
-                          method="DELETE"
-                          variant="destructive"
-                          size="sm"
-                          confirmMessage="Hapus transaksi ini?"
-                          client:load
-                        >
-                          Hapus
-                        </MutationButton>
-                      </div>
-                    </div>
-                  </article>
-                ))}
-              </CardContent>
-            </Card>
-          ))
-        )
-      }
-    </section>
+                    <span class="frost-pill">{items.length} items</span>
+                  </div>
+
+                  <div class="mt-4 space-y-3">
+                    {items.map((item) => (
+                      <TransactionListItem
+                        item={item}
+                        href={`/app/transactions/new?edit=${item.id}`}
+                        showActions
+                      />
+                    ))}
+                  </div>
+                </div>
+              ))
+            )
+          }
+        </section>
       )
     }
   </AppLayout>

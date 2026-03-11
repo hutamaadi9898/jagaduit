@@ -6,17 +6,13 @@ export function getKv(locals: App.Locals) {
   return locals.runtime.env.APP_KV;
 }
 
-export async function runInTransaction<T>(
+export type DbClient = D1Database | D1DatabaseSession;
+
+export async function runInSession<T>(
   db: D1Database,
-  work: (tx: D1Database) => Promise<T>
+  work: (client: DbClient) => Promise<T>
 ) {
-  await db.exec("BEGIN");
-  try {
-    const result = await work(db);
-    await db.exec("COMMIT");
-    return result;
-  } catch (error) {
-    await db.exec("ROLLBACK");
-    throw error;
-  }
+  // D1 sessions give sequential consistency for related reads and writes
+  // without relying on transaction-control statements through `exec()`.
+  return work(db.withSession("first-primary"));
 }

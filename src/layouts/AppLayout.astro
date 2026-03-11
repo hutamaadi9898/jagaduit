@@ -1,38 +1,87 @@
 ---
-import { Home, Layers3, ReceiptText, Settings2, WalletCards } from "lucide-react";
+import { Home, Layers3, LogOut, MoonStar, Plus, ReceiptText, Settings2, SunMedium, WalletCards } from "lucide-react";
 
 import { APP_NAME } from "@/server/constants/categories";
 
 const { title = APP_NAME, currentPath = Astro.url.pathname } = Astro.props;
 
 const navItems = [
-  { href: "/app", label: "Ringkasan", icon: Home },
-  { href: "/app/transactions", label: "Transaksi", icon: ReceiptText },
+  { href: "/app", label: "Home", icon: Home },
+  { href: "/app/transactions", label: "Report", icon: ReceiptText },
   { href: "/app/accounts", label: "Akun", icon: WalletCards },
-  { href: "/app/categories", label: "Kategori", icon: Layers3 },
+  { href: "/app/categories", label: "Label", icon: Layers3 },
   { href: "/app/settings", label: "Atur", icon: Settings2 }
 ];
+
+const pageMeta = navItems.find(
+  (item) => currentPath === item.href || (item.href !== "/app" && currentPath.startsWith(item.href))
+);
+
+const shortTitle = typeof title === "string" ? title : APP_NAME;
 ---
 
-<div class="relative min-h-screen overflow-hidden px-4 pb-28 pt-5 sm:px-6">
+<div class="relative min-h-screen overflow-hidden px-3 pb-32 pt-5 sm:px-5">
   <div class="noise-overlay pointer-events-none absolute inset-0"></div>
-  <div class="mx-auto flex max-w-6xl flex-col gap-6">
-    <header class="glass-card relative flex items-start justify-between rounded-[2rem] px-5 py-4">
-      <div>
-        <p class="text-xs font-semibold uppercase tracking-[0.28em] text-primary/70">{APP_NAME}</p>
-        <h1 class="mt-2 text-3xl font-bold text-foreground">{title}</h1>
-      </div>
-      <form method="POST" action="/api/auth/logout">
-        <button class="rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-white">Keluar</button>
-      </form>
-    </header>
+  <div class="pointer-events-none absolute left-1/2 top-0 h-72 w-72 -translate-x-1/2 rounded-full bg-primary/12 blur-3xl"></div>
+  <div class="pointer-events-none absolute right-0 top-40 h-52 w-52 rounded-full bg-secondary/14 blur-3xl"></div>
 
-    <main class="pb-8">
-      <slot />
-    </main>
+  <div class="mx-auto max-w-6xl">
+    <div class="phone-shell relative mx-auto max-w-[26.5rem] px-4 pb-8 pt-4 sm:px-5 lg:max-w-6xl lg:px-6">
+      <header class="flex items-center justify-between gap-4">
+        <div class="flex min-w-0 items-center gap-3">
+          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,#7f58ec,#aa80f2_58%,#6fb9ff)] text-sm font-bold text-white shadow-[0_14px_34px_rgba(127,88,236,0.24)]">
+            KC
+          </div>
+          <div class="min-w-0">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.26em] text-primary/60">{APP_NAME}</p>
+            <div class="flex items-center gap-2">
+              <h1 class="truncate text-lg font-bold text-foreground sm:text-xl">{shortTitle}</h1>
+              {pageMeta ? (
+                <span class="hidden rounded-full bg-muted px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground sm:inline-flex">
+                  {pageMeta.label}
+                </span>
+              ) : null}
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            class="app-icon-button"
+            data-theme-toggle
+            aria-label="Ganti tema"
+            title="Ganti tema"
+          >
+            <SunMedium className="theme-icon-light h-4 w-4" />
+            <MoonStar className="theme-icon-dark h-4 w-4" />
+          </button>
+          <form method="POST" action="/api/auth/logout">
+            <button
+              class="app-icon-button"
+              aria-label="Keluar"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
+          </form>
+        </div>
+      </header>
+
+      <main class="pb-6 pt-4">
+        <slot />
+      </main>
+    </div>
   </div>
 
-  <nav class="fixed inset-x-0 bottom-4 z-20 mx-auto flex max-w-md justify-between rounded-[1.8rem] border border-white/70 bg-white/85 px-4 py-3 shadow-[0_22px_45px_rgba(65,43,28,0.14)] backdrop-blur-xl">
+  <a
+    href="/app/transactions/new"
+    class="app-fab fixed bottom-[4.95rem] left-1/2 z-30 inline-flex h-14 w-14 -translate-x-1/2 items-center justify-center rounded-full text-white transition-transform hover:-translate-x-1/2 hover:-translate-y-1"
+    aria-label="Tambah transaksi"
+  >
+    <Plus className="h-5 w-5" />
+  </a>
+
+  <nav class="app-dock fixed inset-x-0 bottom-4 z-20 mx-auto flex max-w-[23rem] items-end justify-between rounded-[1.7rem] px-3 py-2.5">
     {
       navItems.map((item) => {
         const Icon = item.icon;
@@ -42,11 +91,22 @@ const navItems = [
           <a
             href={item.href}
             class:list={[
-              "flex min-w-14 flex-col items-center gap-1 rounded-2xl px-2 py-1.5 text-[11px] font-semibold",
-              active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+              "flex min-w-[3.55rem] flex-col items-center gap-1 px-1.5 py-1 text-[10px] font-semibold",
+              active
+                ? "text-primary"
+                : "text-muted-foreground hover:text-foreground"
             ]}
           >
-            <Icon className="h-4 w-4" />
+            <span
+              class:list={[
+                "inline-flex h-8 w-8 items-center justify-center rounded-full transition-all",
+                active
+                  ? "bg-[linear-gradient(135deg,#8c65f1,#b18cf8)] text-white shadow-[0_10px_24px_rgba(140,101,241,0.22)]"
+                  : "bg-transparent text-current"
+              ]}
+            >
+              <Icon className="h-4 w-4" />
+            </span>
             <span>{item.label}</span>
           </a>
         );

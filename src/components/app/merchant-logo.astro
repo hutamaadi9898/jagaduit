@@ -1,0 +1,36 @@
+---
+import type { ResolvedMerchantBrand } from "@/lib/merchant-brands";
+
+const { merchant, size = "md" } = Astro.props as {
+  merchant: ResolvedMerchantBrand;
+  size?: "sm" | "md";
+};
+
+const sizeClass = size === "sm" ? "h-11 w-11 rounded-[1rem]" : "h-12 w-12 rounded-[1.15rem]";
+const iconSize = size === "sm" ? "h-5 w-5" : "h-6 w-6";
+---
+
+<span
+  class:list={[
+    "merchant-mark inline-flex shrink-0 items-center justify-center border",
+    sizeClass
+  ]}
+  style={`--merchant-surface:${merchant.surface}; --merchant-accent:${merchant.foreground};`}
+  aria-hidden="true"
+>
+  {
+    merchant.icon ? (
+      <svg
+        class={iconSize}
+        viewBox="0 0 24 24"
+        fill="currentColor"
+        role="img"
+        aria-label={merchant.icon.title}
+      >
+        <path d={merchant.icon.path}></path>
+      </svg>
+    ) : (
+      <span class="text-xs font-bold tracking-[-0.04em]">{merchant.monogram}</span>
+    )
+  }
+</span>

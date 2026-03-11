@@ -1,9 +1,10 @@
 import { generateId } from "lucia";
 
+import type { DbClient } from "@/server/db/client";
 import { mapUser, now } from "@/server/db/helpers";
 import type { User } from "@/types/app";
 
-export async function findUserByEmail(db: D1Database, email: string) {
+export async function findUserByEmail(db: DbClient, email: string) {
   const row = await db
     .prepare("SELECT * FROM users WHERE email = ? LIMIT 1")
     .bind(email.toLowerCase())
@@ -12,7 +13,7 @@ export async function findUserByEmail(db: D1Database, email: string) {
   return row ? mapUser(row) : null;
 }
 
-export async function findUserById(db: D1Database, userId: string) {
+export async function findUserById(db: DbClient, userId: string) {
   const row = await db
     .prepare("SELECT * FROM users WHERE id = ? LIMIT 1")
     .bind(userId)
@@ -22,7 +23,7 @@ export async function findUserById(db: D1Database, userId: string) {
 }
 
 export async function createUser(
-  db: D1Database,
+  db: DbClient,
   input: Pick<User, "email" | "displayName" | "locale" | "currency" | "timezone"> & {
     passwordHash: string;
   }
@@ -65,7 +66,7 @@ export async function createUser(
   } satisfies User;
 }
 
-export async function getPasswordHashByEmail(db: D1Database, email: string) {
+export async function getPasswordHashByEmail(db: DbClient, email: string) {
   const row = await db
     .prepare("SELECT id, password_hash FROM users WHERE email = ? LIMIT 1")
     .bind(email.toLowerCase())
@@ -75,7 +76,7 @@ export async function getPasswordHashByEmail(db: D1Database, email: string) {
 }
 
 export async function updateUserProfile(
-  db: D1Database,
+  db: DbClient,
   userId: string,
   data: Partial<Pick<User, "displayName" | "timezone" | "locale">>
 ) {
@@ -107,7 +108,7 @@ export async function updateUserProfile(
   return findUserById(db, userId);
 }
 
-export async function completeUserOnboarding(db: D1Database, userId: string) {
+export async function completeUserOnboarding(db: DbClient, userId: string) {
   const timestamp = now();
 
   await db

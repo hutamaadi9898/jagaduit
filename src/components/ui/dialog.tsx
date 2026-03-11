@@ -29,7 +29,7 @@ function DialogContent({
       <DialogOverlay />
       <DialogPrimitive.Content
         className={cn(
-          "fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-[1.8rem] border border-white/60 bg-white p-6 shadow-[0_24px_60px_rgba(65,43,28,0.18)]",
+          "fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-[1.8rem] border border-border bg-card p-6 shadow-[0_24px_60px_rgba(65,43,28,0.18)]",
           className
         )}
         {...props}

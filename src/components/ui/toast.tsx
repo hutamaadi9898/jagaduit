@@ -17,7 +17,7 @@ function AppToast({
   return (
     <ToastPrimitive.Root
       className={cn(
-        "grid gap-1 rounded-[1.2rem] border border-white/60 bg-white p-4 shadow-[0_20px_50px_rgba(65,43,28,0.16)]",
+        "grid gap-1 rounded-[1.2rem] border border-border bg-card p-4 shadow-[0_20px_50px_rgba(65,43,28,0.16)]",
         className
       )}
       {...props}

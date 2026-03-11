@@ -1,76 +1,272 @@
 ---
-import { ArrowRight, Sparkles, WalletCards } from "lucide-react";
+import {
+  ArrowRight,
+  Bike,
+  CheckCircle2,
+  Coffee,
+  ReceiptText,
+  ShoppingBag,
+  Sparkles,
+  WalletCards
+} from "lucide-react";
 
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { APP_NAME } from "@/server/constants/categories";
+
+const dayHighlights = [
+  {
+    icon: Coffee,
+    label: "Ngopi sore",
+    note: "biar jajan receh tetap ke-track",
+    amount: "-Rp28.000",
+    tone: "expense"
+  },
+  {
+    icon: Bike,
+    label: "Ojol pulang",
+    note: "ongkos lewat app, nggak kelewat catat",
+    amount: "-Rp17.500",
+    tone: "expense"
+  },
+  {
+    icon: ShoppingBag,
+    label: "Checkout skincare",
+    note: "biar lapar mata bisa ketahuan polanya",
+    amount: "-Rp89.000",
+    tone: "expense"
+  },
+  {
+    icon: WalletCards,
+    label: "Bayaran freelance",
+    note: "uang project masuk, langsung kebagi jelas",
+    amount: "+Rp450.000",
+    tone: "income"
+  }
+];
+
+const quickProofs = ["Jajan", "Ojol", "Top up", "Checkout", "Gajian", "Freelance"];
+
+const benefits = [
+  {
+    title: "Nggak bikin mikir dua kali",
+    description: "Buka app, catat, selesai. Nggak ada istilah yang bikin kamu ngerasa lagi buka tools finance ribet."
+  },
+  {
+    title: "Isinya relate sama hidup sehari-hari",
+    description: "Mulai dari jajan, transport, top up, checkout lucu, sampai bayaran freelance, semuanya masuk."
+  },
+  {
+    title: "Bocor alus langsung ketahuan",
+    description: "Yang tadinya kelihatan receh bisa langsung kebaca pas ternyata sering banget kejadian."
+  }
+];
+
+const personas = [
+  {
+    title: "Anak kos",
+    text: "Biar tahu uang makan, laundry, dan ongkir mingguan masih aman apa udah mulai kebablasan."
+  },
+  {
+    title: "Baru gajian",
+    text: "Biar uang gaji nggak tahu-tahu lenyap duluan gara-gara checkout, ngopi, dan FOMO tipis-tipis."
+  },
+  {
+    title: "Nyambi freelance",
+    text: "Uang dari project kecil-kecil tetap kecatet, jadi nggak nyampur sama duit harian."
+  }
+];
+
+const steps = [
+  "Pilih uang masuk atau uang keluar.",
+  "Isi nominal dan catatan singkat, misalnya buat ngopi, top up, atau bayar kos.",
+  "Pas mau cek kondisi dompet, tinggal lihat ringkasannya."
+];
 ---
 
 <BaseLayout
-  title={`${APP_NAME} | Expense tracker gen-z Indonesia`}
-  description="Catat pemasukan dan pengeluaran dengan flow cepat, tampilan bold, dan dashboard ringan untuk harian."
+  title={`${APP_NAME} | Catatan duit harian buat Gen Z Indonesia`}
+  description="Buat yang pengin duit nggak hilang diam-diam, tanpa harus ngerti akuntansi atau rajin update spreadsheet."
 >
-  <main class="relative overflow-hidden px-4 pb-12 pt-6 sm:px-6">
+  <main class="landing-backdrop relative overflow-hidden px-4 pb-16 pt-5 sm:px-6 sm:pb-20">
     <div class="noise-overlay absolute inset-0"></div>
-    <div class="shell-grid absolute inset-x-0 top-24 h-80 opacity-60"></div>
-    <div class="relative mx-auto flex max-w-6xl flex-col gap-8">
-      <header class="glass-card flex items-center justify-between rounded-[2rem] px-5 py-4">
+    <div class="pointer-events-none absolute inset-x-0 top-0 h-[28rem] bg-[radial-gradient(circle_at_top,rgba(255,173,112,0.18),transparent_40%)]"></div>
+    <div class="pointer-events-none absolute left-0 top-48 h-72 w-72 rounded-full bg-[#ff9a76]/18 blur-3xl"></div>
+    <div class="pointer-events-none absolute right-0 top-20 h-80 w-80 rounded-full bg-[#4da7ff]/16 blur-3xl"></div>
+
+    <div class="relative mx-auto max-w-6xl">
+      <header class="landing-panel flex items-center justify-between gap-4 px-5 py-4 sm:px-6">
         <div>
-          <p class="text-xs font-semibold uppercase tracking-[0.28em] text-primary/70">{APP_NAME}</p>
-          <h1 class="mt-2 text-2xl font-bold sm:text-3xl">Biar duit nggak cuma lewat, tapi kebaca.</h1>
+          <p class="landing-kicker">{APP_NAME}</p>
+          <p class="mt-2 text-sm text-muted-foreground sm:text-base">Biar duitmu nggak tau-tau lenyap pas akhir bulan.</p>
         </div>
-        <a class="rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-white" href="/login">Masuk</a>
+        <div class="flex items-center gap-2">
+          <a class="landing-secondary-button" href="/login">Masuk</a>
+          <a class="landing-primary-button hidden sm:inline-flex" href="/register">
+            Coba gratis
+          </a>
+        </div>
       </header>
 
-      <section class="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <div class="glass-card relative overflow-hidden rounded-[2.4rem] p-6 sm:p-8">
-          <div class="absolute -right-12 top-0 h-40 w-40 rounded-full bg-primary/20 blur-3xl"></div>
-          <div class="absolute bottom-0 left-0 h-40 w-40 rounded-full bg-secondary/25 blur-3xl"></div>
+      <section class="mt-6 grid gap-5 lg:grid-cols-[1.08fr_0.92fr]">
+        <section class="landing-panel relative overflow-hidden p-6 sm:p-8">
+          <div class="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-[radial-gradient(circle_at_bottom_left,rgba(255,161,114,0.28),transparent_45%)]"></div>
+          <div class="pointer-events-none absolute right-0 top-0 h-52 w-52 rounded-full bg-[radial-gradient(circle,rgba(77,167,255,0.26),transparent_62%)]"></div>
+
           <div class="relative">
-            <p class="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-primary">
+            <span class="landing-badge">
               <Sparkles className="h-4 w-4" />
-              MVP buat Gen-Z Indonesia
+              Cocok buat anak kos, yang baru gajian, sampai yang nyambi freelance
+            </span>
+
+            <h1 class="mt-5 max-w-3xl text-[3rem] font-bold leading-[0.92] tracking-[-0.06em] sm:text-[4.35rem]">
+              Yang masuk kelihatan,
+              <span class="landing-gradient-text"> yang bikin boncos juga ketahuan.</span>
+            </h1>
+
+            <p class="mt-5 max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg">
+              Catat jajan, ongkir, top up, transport, sampai checkout random tanpa ribet. Jadi pas duit mulai seret, kamu tahu sebenernya bocornya dari mana.
             </p>
-            <h2 class="mt-5 max-w-xl text-5xl font-bold leading-none sm:text-6xl">
-              Track <span class="headline-balance">cashflow</span> tanpa ribet.
-            </h2>
-            <p class="mt-5 max-w-lg text-base text-muted-foreground sm:text-lg">
-              KitaCuan bantu kamu catat pengeluaran, pemasukan, kategori favorit, dan ritme bulanan tanpa dashboard yang terasa kaku.
-            </p>
+
+            <div class="mt-5 flex flex-wrap gap-2">
+              {quickProofs.map((item) => (
+                <span class="landing-proof-chip">{item}</span>
+              ))}
+            </div>
+
             <div class="mt-8 flex flex-col gap-3 sm:flex-row">
-              <a
-                class="inline-flex items-center justify-center gap-2 rounded-[1.3rem] bg-primary px-5 py-4 font-semibold text-primary-foreground shadow-[0_18px_40px_rgba(236,102,65,0.25)]"
-                href="/register"
-              >
-                Coba Gratis
+              <a class="landing-primary-button" href="/register">
+                Gas mulai gratis
                 <ArrowRight className="h-4 w-4" />
               </a>
-              <a class="inline-flex items-center justify-center rounded-[1.3rem] border border-border bg-white/80 px-5 py-4 font-semibold" href="/login">
-                Sudah punya akun
-              </a>
+              <a class="landing-secondary-button" href="#cara-pakai">Lihat cara pakainya</a>
+            </div>
+
+            <div class="mt-8 grid gap-3 sm:grid-cols-3">
+              <div class="landing-mini-card">
+                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[#ff7f50]">Cepat</p>
+                <p class="mt-2 text-sm font-semibold text-foreground">Sekali isi, langsung kecatet. Nggak pake muter.</p>
+              </div>
+              <div class="landing-mini-card">
+                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[#25a56a]">Jelas</p>
+                <p class="mt-2 text-sm font-semibold text-foreground">Nominal langsung rupiah, nggak ada format aneh-aneh.</p>
+              </div>
+              <div class="landing-mini-card">
+                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[#4da7ff]">Ringkas</p>
+                <p class="mt-2 text-sm font-semibold text-foreground">Sekali lihat, langsung kebayang duit larinya ke mana.</p>
+              </div>
             </div>
           </div>
-        </div>
+        </section>
 
-        <div class="grid gap-4">
-          <article class="glass-card rounded-[2rem] p-5">
-            <p class="text-sm font-semibold uppercase tracking-[0.22em] text-primary/70">Daily speed</p>
-            <p class="mt-3 text-3xl font-bold">Tambah transaksi dalam hitungan detik.</p>
-            <p class="mt-2 text-sm text-muted-foreground">Flow mobile-first, angka langsung IDR, kategori starter Indonesia, dan akun utama siap pakai.</p>
-          </article>
-          <article class="rounded-[2rem] border border-foreground/10 bg-foreground p-5 text-white">
-            <div class="flex items-center justify-between">
-              <span class="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold">Ringan</span>
-              <WalletCards className="h-5 w-5 text-secondary" />
+        <section class="grid gap-5">
+          <article class="landing-ink-panel p-5 sm:p-6">
+            <div class="flex items-center justify-between gap-3">
+              <div>
+                <p class="landing-kicker text-white/68">Contoh tampilannya</p>
+                <h2 class="mt-2 text-3xl font-bold leading-tight text-white">Simple, tapi cukup buat tahu kamu lagi aman atau boncos.</h2>
+              </div>
+              <ReceiptText className="h-6 w-6 text-[#ffb48c]" />
             </div>
-            <p class="mt-8 text-4xl font-bold">IDR only.</p>
-            <p class="mt-2 text-sm text-white/70">Fokus dulu ke kebutuhan lokal: Bahasa Indonesia, timezone Jakarta, dan solo finance tracking.</p>
+
+            <div class="landing-phone mt-6">
+              <div class="landing-phone__top">
+                <div>
+                  <p class="text-xs uppercase tracking-[0.18em] text-white/56">Hari ini</p>
+                  <p class="mt-2 text-3xl font-bold text-white">Rp315.500</p>
+                </div>
+                <span class="rounded-full border border-white/12 bg-white/8 px-3 py-1 text-[11px] font-semibold text-white/82">
+                  Masih aman
+                </span>
+              </div>
+
+              <div class="mt-4 space-y-3">
+                {dayHighlights.map((item) => {
+                  const Icon = item.icon;
+
+                  return (
+                    <div class="landing-transaction">
+                      <span class="landing-transaction__icon">
+                        <Icon className="h-4 w-4" />
+                      </span>
+                      <div class="min-w-0">
+                        <p class="truncate text-sm font-semibold text-foreground">{item.label}</p>
+                        <p class="text-xs text-muted-foreground">{item.note}</p>
+                      </div>
+                      <p class:list={[
+                        "text-sm font-bold",
+                        item.tone === "income" ? "text-emerald-500" : "text-[#ef6a5b]"
+                      ]}>
+                        {item.amount}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </article>
-          <article class="glass-card rounded-[2rem] p-5">
-            <p class="text-sm font-semibold uppercase tracking-[0.22em] text-primary/70">Cloudflare native</p>
-            <p class="mt-3 text-3xl font-bold">SSR cepat di Workers, data di D1.</p>
-            <p class="mt-2 text-sm text-muted-foreground">KV dipakai buat cache ringkasan dan throttle login, bukan jadi sumber data utama.</p>
+
+          <article class="landing-panel p-5 sm:p-6">
+            <p class="landing-kicker">Kenapa enak dipakai</p>
+            <div class="mt-4 space-y-3">
+              {benefits.map((item) => (
+                <div class="landing-check-row">
+                  <CheckCircle2 className="h-5 w-5 text-[#25a56a]" />
+                  <div>
+                    <p class="font-semibold text-foreground">{item.title}</p>
+                    <p class="mt-1 text-sm leading-6 text-muted-foreground">{item.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </article>
-        </div>
+        </section>
+      </section>
+
+      <section class="mt-6 grid gap-5 lg:grid-cols-[0.94fr_1.06fr]">
+        <article class="landing-panel p-6 sm:p-7">
+          <p class="landing-kicker">Siapa yang bakal ngerasa kebantu?</p>
+          <h2 class="mt-3 text-3xl font-bold leading-tight text-foreground sm:text-[2.35rem]">
+            Buat kamu yang pengin duit lebih ke-track, tapi nggak mau hidup di spreadsheet.
+          </h2>
+
+          <div class="mt-6 space-y-3">
+            {personas.map((item) => (
+              <div class="landing-list-card">
+                <p class="font-semibold text-foreground">{item.title}</p>
+                <p class="mt-1 text-sm leading-6 text-muted-foreground">{item.text}</p>
+              </div>
+            ))}
+          </div>
+        </article>
+
+        <article id="cara-pakai" class="landing-panel p-6 sm:p-7 scroll-mt-8">
+          <p class="landing-kicker">Cara pakainya</p>
+          <h2 class="mt-3 text-3xl font-bold leading-tight text-foreground sm:text-[2.35rem]">
+            Tiga langkah doang. Nggak ada setup yang bikin mager duluan.
+          </h2>
+
+          <div class="mt-6 grid gap-3">
+            {steps.map((step, index) => (
+              <div class="landing-step">
+                <span class="landing-step__index">0{index + 1}</span>
+                <p class="text-sm font-semibold leading-6 text-foreground sm:text-base">{step}</p>
+              </div>
+            ))}
+          </div>
+
+          <div class="landing-cta mt-6">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-[0.18em] text-white/62">Intinya</p>
+              <p class="mt-2 max-w-xl text-2xl font-bold leading-tight text-white">
+                KitaCuan bukan app yang sok ribet. Tujuannya cuma satu: biar kamu nggak bingung duitmu habis di mana.
+              </p>
+            </div>
+            <a class="landing-primary-button mt-5 w-full sm:mt-0 sm:w-auto" href="/register">
+              Cobain sekarang
+              <ArrowRight className="h-4 w-4" />
+            </a>
+          </div>
+        </article>
       </section>
     </div>
   </main>

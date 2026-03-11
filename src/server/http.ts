@@ -27,7 +27,7 @@ export function successResponse(request: Request, payload: unknown, options?: Su
     });
   }
 
-  return Response.redirect(new URL(options.redirectTo, request.url), 302);
+  return Response.redirect(new URL(options.redirectTo, request.url).toString(), 302);
 }
 
 export function errorResponse(_request: Request, error: unknown, fallbackMessage = "Terjadi kesalahan.") {

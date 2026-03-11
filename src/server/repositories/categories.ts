@@ -1,10 +1,11 @@
 import { generateId } from "lucia";
 
+import type { DbClient } from "@/server/db/client";
 import { mapCategory, now } from "@/server/db/helpers";
 import type { CategoryKind } from "@/types/app";
 
 export async function listCategories(
-  db: D1Database,
+  db: DbClient,
   userId: string,
   includeArchived = true
 ) {
@@ -16,7 +17,7 @@ export async function listCategories(
   return results.map(mapCategory);
 }
 
-export async function getCategoryById(db: D1Database, userId: string, categoryId: string) {
+export async function getCategoryById(db: DbClient, userId: string, categoryId: string) {
   const row = await db
     .prepare("SELECT * FROM categories WHERE id = ? AND user_id = ? LIMIT 1")
     .bind(categoryId, userId)
@@ -26,7 +27,7 @@ export async function getCategoryById(db: D1Database, userId: string, categoryId
 }
 
 export async function findCategoryByName(
-  db: D1Database,
+  db: DbClient,
   userId: string,
   kind: CategoryKind,
   name: string,
@@ -51,7 +52,7 @@ export async function findCategoryByName(
 }
 
 export async function createCategory(
-  db: D1Database,
+  db: DbClient,
   userId: string,
   input: {
     name: string;
@@ -90,7 +91,7 @@ export async function createCategory(
 }
 
 export async function updateCategory(
-  db: D1Database,
+  db: DbClient,
   userId: string,
   categoryId: string,
   input: {
@@ -128,7 +129,7 @@ export async function updateCategory(
   return getCategoryById(db, userId, categoryId);
 }
 
-export async function archiveCategory(db: D1Database, userId: string, categoryId: string) {
+export async function archiveCategory(db: DbClient, userId: string, categoryId: string) {
   const current = await getCategoryById(db, userId, categoryId);
 
   if (!current) {

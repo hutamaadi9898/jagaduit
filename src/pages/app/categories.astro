@@ -70,7 +70,7 @@ const editing = categories.find((item) => item.id === editId) ?? null;
                         </div>
                       </div>
                       <div class="flex gap-2">
-                        <a class="inline-flex h-10 items-center rounded-2xl border border-border bg-white/80 px-3 text-xs font-semibold" href={`/app/categories?edit=${category.id}`}>
+                        <a class="inline-flex h-10 items-center rounded-2xl border border-border bg-card/80 px-3 text-xs font-semibold" href={`/app/categories?edit=${category.id}`}>
                           Edit
                         </a>
                         {!category.isArchived ? (

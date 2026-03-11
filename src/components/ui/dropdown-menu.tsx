@@ -17,7 +17,7 @@ function DropdownMenuContent({
       <DropdownMenuPrimitive.Content
         sideOffset={sideOffset}
         className={cn(
-          "z-50 min-w-44 rounded-[1.2rem] border border-white/60 bg-white p-2 shadow-[0_20px_50px_rgba(65,43,28,0.16)]",
+          "z-50 min-w-44 rounded-[1.2rem] border border-border bg-card p-2 shadow-[0_20px_50px_rgba(65,43,28,0.16)]",
           className
         )}
         {...props}

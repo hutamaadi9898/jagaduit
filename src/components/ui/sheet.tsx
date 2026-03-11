@@ -29,7 +29,7 @@ function SheetContent({
       <SheetOverlay />
       <DialogPrimitive.Content
         className={cn(
-          "fixed inset-x-0 bottom-0 z-50 rounded-t-[2rem] border border-white/60 bg-white p-6 shadow-[0_-18px_50px_rgba(65,43,28,0.18)]",
+          "fixed inset-x-0 bottom-0 z-50 rounded-t-[2rem] border border-border bg-card p-6 shadow-[0_-18px_50px_rgba(65,43,28,0.18)]",
           className
         )}
         {...props}

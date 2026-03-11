@@ -1,0 +1,86 @@
+---
+import MerchantLogo from "@/components/app/merchant-logo.astro";
+import { MutationButton } from "@/components/app/mutation-button";
+import { formatCompactCurrency, formatCurrency } from "@/lib/utils";
+import { formatTransactionTimeLabel, resolveMerchantBrand } from "@/lib/merchant-brands";
+import type { TransactionWithRelations } from "@/types/app";
+
+const {
+  item,
+  href,
+  showActions = false,
+  amountMode = "full"
+} = Astro.props as {
+  item: TransactionWithRelations;
+  href?: string;
+  showActions?: boolean;
+  amountMode?: "full" | "compact";
+};
+
+const merchant = resolveMerchantBrand(item);
+const timeLabel = formatTransactionTimeLabel(item.createdAt, item.transactionDate);
+const metaLabel = [timeLabel, item.accountName].filter(Boolean).join(" / ");
+const noteLabel = item.note?.trim();
+const amountLabel =
+  amountMode === "compact" ? formatCompactCurrency(item.amountMinor) : formatCurrency(item.amountMinor);
+---
+
+<article class="merchant-row">
+  {
+    href ? (
+      <a href={href} class="merchant-row__link">
+        <MerchantLogo merchant={merchant} size="sm" />
+        <div class="min-w-0">
+          <p class="truncate text-[0.95rem] font-semibold text-foreground">{merchant.label}</p>
+          <p class="truncate text-xs text-muted-foreground">{metaLabel}</p>
+        </div>
+        <div class="min-w-[5.75rem] text-right">
+          <p class:list={["text-[0.96rem] font-semibold", item.kind === "income" ? "text-emerald-500" : "text-destructive"]}>
+            {item.kind === "income" ? "+" : "-"}
+            {amountLabel}
+          </p>
+          <p class="mt-1 truncate text-[11px] text-muted-foreground">{noteLabel || item.categoryName}</p>
+        </div>
+      </a>
+    ) : (
+      <div class="merchant-row__link">
+        <MerchantLogo merchant={merchant} size="sm" />
+        <div class="min-w-0">
+          <p class="truncate text-[0.95rem] font-semibold text-foreground">{merchant.label}</p>
+          <p class="truncate text-xs text-muted-foreground">{metaLabel}</p>
+        </div>
+        <div class="min-w-[5.75rem] text-right">
+          <p class:list={["text-[0.96rem] font-semibold", item.kind === "income" ? "text-emerald-500" : "text-destructive"]}>
+            {item.kind === "income" ? "+" : "-"}
+            {amountLabel}
+          </p>
+          <p class="mt-1 truncate text-[11px] text-muted-foreground">{noteLabel || item.categoryName}</p>
+        </div>
+      </div>
+    )
+  }
+
+  {
+    showActions ? (
+      <div class="merchant-row__actions">
+        <a
+          class="merchant-row__action"
+          href={`/app/transactions/new?edit=${item.id}`}
+        >
+          Edit
+        </a>
+        <MutationButton
+          endpoint={`/api/transactions/${item.id}`}
+          method="DELETE"
+          variant="destructive"
+          size="sm"
+          confirmMessage="Hapus transaksi ini?"
+          className="rounded-full"
+          client:load
+        >
+          Hapus
+        </MutationButton>
+      </div>
+    ) : null
+  }
+</article>

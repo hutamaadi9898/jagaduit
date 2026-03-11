@@ -24,6 +24,59 @@ const {
       href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
+    <script is:inline>
+      (() => {
+        const storageKey = "kitacuan-theme";
+        const root = document.documentElement;
+        const media = window.matchMedia("(prefers-color-scheme: dark)");
+        const metaTheme = document.querySelector('meta[name="theme-color"]');
+
+        const applyTheme = (theme) => {
+          const isDark = theme === "dark";
+          root.classList.toggle("dark", isDark);
+          root.style.colorScheme = isDark ? "dark" : "light";
+          metaTheme?.setAttribute("content", isDark ? "#10131c" : "#f4f1fb");
+        };
+
+        const resolveTheme = () => {
+          const saved = localStorage.getItem(storageKey);
+          if (saved === "light" || saved === "dark") {
+            return saved;
+          }
+
+          return media.matches ? "dark" : "light";
+        };
+
+        applyTheme(resolveTheme());
+
+        window.__kitacuanTheme = {
+          get: resolveTheme,
+          set: (theme) => {
+            localStorage.setItem(storageKey, theme);
+            applyTheme(theme);
+          },
+          clear: () => {
+            localStorage.removeItem(storageKey);
+            applyTheme(resolveTheme());
+          }
+        };
+
+        media.addEventListener("change", () => {
+          if (!localStorage.getItem(storageKey)) {
+            applyTheme(resolveTheme());
+          }
+        });
+
+        window.addEventListener("DOMContentLoaded", () => {
+          document.querySelectorAll("[data-theme-toggle]").forEach((button) => {
+            button.addEventListener("click", () => {
+              const next = root.classList.contains("dark") ? "light" : "dark";
+              window.__kitacuanTheme?.set(next);
+            });
+          });
+        });
+      })();
+    </script>
     <title>{title}</title>
   </head>
   <body>

@@ -76,7 +76,7 @@ const editing = accounts.find((item) => item.id === editId) ?? null;
                       Jadikan utama
                     </MutationButton>
                   ) : null}
-                  <a class="inline-flex h-10 items-center rounded-2xl border border-border bg-white/80 px-3 text-xs font-semibold" href={`/app/accounts?edit=${account.id}`}>
+                  <a class="inline-flex h-10 items-center rounded-2xl border border-border bg-card/80 px-3 text-xs font-semibold" href={`/app/accounts?edit=${account.id}`}>
                     Edit
                   </a>
                   {!account.isArchived ? (

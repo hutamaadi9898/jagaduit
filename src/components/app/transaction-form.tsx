@@ -1,5 +1,5 @@
 import { LoaderCircle } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,47 +31,81 @@ export function TransactionForm({
   const defaultAccountId =
     transaction?.accountId ??
     recentDefaults?.accountId ??
-    accounts.find((item) => item.isDefault)?.id;
+    accounts.find((item) => item.isDefault && !item.isArchived)?.id ??
+    accounts.find((item) => !item.isArchived)?.id ??
+    "";
   const defaultCategoryId =
     transaction?.categoryId ??
     recentDefaults?.categoryByKind?.[defaultKind] ??
-    categories.find((category) => category.kind === defaultKind && !category.isArchived)?.id;
+    categories.find((category) => category.kind === defaultKind && !category.isArchived)?.id ??
+    "";
+  const [accountId, setAccountId] = useState(defaultAccountId);
+  const [categoryId, setCategoryId] = useState(defaultCategoryId);
 
   const filteredCategories = useMemo(
     () => categories.filter((category) => category.kind === kind && !category.isArchived),
     [categories, kind]
   );
+  const hasMatchingCategory = filteredCategories.some((category) => category.id === categoryId);
+
+  useEffect(() => {
+    if (hasMatchingCategory) {
+      return;
+    }
+
+    setCategoryId(filteredCategories[0]?.id ?? "");
+  }, [categoryId, filteredCategories, hasMatchingCategory]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!accountId) {
+      setError("Pilih akun aktif dulu sebelum menyimpan transaksi.");
+      return;
+    }
+
+    if (!categoryId) {
+      setError("Kategori untuk jenis transaksi ini belum tersedia.");
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
     const formData = new FormData(event.currentTarget);
     const payload: Record<string, string | number> = {
       ...Object.fromEntries(formData.entries()),
+      accountId,
+      categoryId,
+      kind,
       amountMinor: Number(formData.get("amountMinor"))
     };
 
-    const response = await fetch(transaction ? `/api/transactions/${transaction.id}` : "/api/transactions", {
-      method: transaction ? "PATCH" : "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json"
-      },
-      body: JSON.stringify(payload)
-    });
+    try {
+      const response = await fetch(transaction ? `/api/transactions/${transaction.id}` : "/api/transactions", {
+        method: transaction ? "PATCH" : "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
 
-    const data = (await response.json().catch(() => null)) as { message?: string } | null;
+      const data = (await response.json().catch(() => null)) as { message?: string } | null;
 
-    if (!response.ok) {
-      setError(data?.message ?? "Transaksi gagal disimpan.");
+      if (!response.ok) {
+        setError(data?.message ?? "Transaksi gagal disimpan.");
+        setLoading(false);
+        return;
+      }
+
+      const targetMonth =
+        String(payload.transactionDate ?? "").slice(0, 7) ||
+        new Date().toISOString().slice(0, 7);
+      window.location.href = `/app/transactions?month=${targetMonth}`;
+    } catch (submitError) {
+      setError(submitError instanceof Error ? submitError.message : "Transaksi gagal dikirim.");
       setLoading(false);
-      return;
     }
-
-    const targetMonth = String(formData.get("transactionDate") ?? "").slice(0, 7);
-    window.location.href = `/app/transactions?month=${targetMonth}`;
   }
 
   return (
@@ -81,9 +115,9 @@ export function TransactionForm({
         <select
           id="kind"
           name="kind"
-          defaultValue={defaultKind}
+          value={kind}
           onChange={(event) => setKind(event.target.value as "income" | "expense")}
-          className="h-12 w-full rounded-[1.2rem] border border-border bg-white/80 px-4 text-sm"
+          className="h-12 w-full rounded-[1.2rem] border border-border bg-card/80 px-4 text-sm"
         >
           <option value="expense">Pengeluaran</option>
           <option value="income">Pemasukan</option>
@@ -108,8 +142,10 @@ export function TransactionForm({
           <select
             id="accountId"
             name="accountId"
-            defaultValue={defaultAccountId}
-            className="h-12 w-full rounded-[1.2rem] border border-border bg-white/80 px-4 text-sm"
+            value={accountId}
+            onChange={(event) => setAccountId(event.target.value)}
+            className="h-12 w-full rounded-[1.2rem] border border-border bg-card/80 px-4 text-sm"
+            required
           >
             {accounts
               .filter((account) => !account.isArchived)
@@ -123,16 +159,13 @@ export function TransactionForm({
         <div className="space-y-2">
           <Label htmlFor="categoryId">Kategori</Label>
           <select
-            key={kind}
             id="categoryId"
             name="categoryId"
-            defaultValue={
-              transaction?.categoryId ??
-              recentDefaults?.categoryByKind?.[kind] ??
-              defaultCategoryId ??
-              filteredCategories[0]?.id
-            }
-            className="h-12 w-full rounded-[1.2rem] border border-border bg-white/80 px-4 text-sm"
+            value={categoryId}
+            onChange={(event) => setCategoryId(event.target.value)}
+            className="h-12 w-full rounded-[1.2rem] border border-border bg-card/80 px-4 text-sm"
+            required
+            disabled={filteredCategories.length === 0}
           >
             {filteredCategories.map((category) => (
               <option key={category.id} value={category.id}>
@@ -140,6 +173,9 @@ export function TransactionForm({
               </option>
             ))}
           </select>
+          {filteredCategories.length === 0 ? (
+            <p className="text-xs text-destructive">Belum ada kategori aktif untuk jenis transaksi ini.</p>
+          ) : null}
         </div>
       </div>
       <div className="space-y-2">

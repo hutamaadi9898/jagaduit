@@ -1,6 +1,9 @@
 ---
-import BaseLayout from "@/layouts/BaseLayout.astro";
+import { ArrowRight } from "lucide-react";
+
 import { AuthForm } from "@/components/app/auth-form";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { APP_NAME } from "@/server/constants/categories";
 
 if (Astro.locals.isAuthenticated) {
   return Astro.redirect("/app");
@@ -8,22 +11,39 @@ if (Astro.locals.isAuthenticated) {
 ---
 
 <BaseLayout title="Daftar | KitaCuan">
-  <main class="mx-auto flex min-h-screen max-w-6xl items-center px-4 py-8 sm:px-6">
-    <div class="grid w-full gap-6 lg:grid-cols-[0.95fr_1.05fr]">
-      <section class="glass-card relative overflow-hidden rounded-[2.4rem] p-6 sm:p-8">
-        <div class="noise-overlay absolute inset-0"></div>
-        <div class="relative">
-          <p class="text-xs font-semibold uppercase tracking-[0.28em] text-primary/70">Mulai dari langkah kecil</p>
-          <h1 class="mt-4 text-4xl font-bold">Daftar, pilih vibe finansialmu, lalu catat transaksi pertama hari ini.</h1>
-          <p class="mt-4 max-w-md text-muted-foreground">
-            Setelah daftar, kamu lanjut onboarding singkat buat pilih akun pertama dan starter kategori yang paling relevan.
+  <main class="landing-backdrop relative overflow-hidden px-4 py-5 sm:px-6 sm:py-6">
+    <div class="noise-overlay absolute inset-0"></div>
+    <div class="pointer-events-none absolute left-0 top-20 h-72 w-72 rounded-full bg-[#ffb7a0]/18 blur-3xl"></div>
+    <div class="pointer-events-none absolute right-0 top-32 h-80 w-80 rounded-full bg-[#5eaefc]/14 blur-3xl"></div>
+
+    <div class="relative mx-auto max-w-6xl">
+      <header class="landing-panel flex items-center justify-between gap-4 px-5 py-4 sm:px-6">
+        <div>
+          <p class="landing-kicker">{APP_NAME}</p>
+          <p class="mt-2 text-sm text-muted-foreground sm:text-base">Daftar cepat, terus lanjut pakai app.</p>
+        </div>
+        <a class="landing-secondary-button" href="/login">Sudah punya akun?</a>
+      </header>
+
+      <section class="mt-6 grid gap-5 lg:grid-cols-[0.92fr_1.08fr] lg:items-center">
+        <article class="landing-panel p-6 sm:p-8">
+          <p class="landing-kicker">Daftar</p>
+          <h1 class="mt-3 max-w-xl text-[2.5rem] font-bold leading-[0.94] text-foreground sm:text-[3.6rem]">
+            Bikin akun, terus lanjut onboarding singkat.
+          </h1>
+          <p class="mt-4 max-w-lg text-sm leading-7 text-muted-foreground sm:text-base">
+            Isi nama, email, dan password. Habis itu kamu langsung bisa lanjut setup awal.
           </p>
-          <a class="mt-8 inline-flex rounded-full bg-foreground px-4 py-2 font-semibold text-white" href="/login">Sudah punya akun?</a>
+          <a class="landing-secondary-button mt-6 w-full sm:w-auto" href="/login">
+            Sudah punya akun?
+            <ArrowRight className="h-4 w-4" />
+          </a>
+        </article>
+
+        <div class="lg:pt-2">
+          <AuthForm mode="register" client:load />
         </div>
       </section>
-      <div class="lg:pt-12">
-        <AuthForm mode="register" client:load />
-      </div>
     </div>
   </main>
 </BaseLayout>

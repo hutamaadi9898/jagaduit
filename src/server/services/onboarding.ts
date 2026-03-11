@@ -1,5 +1,5 @@
 import { starterAccounts, starterCategories } from "@/server/constants/categories";
-import { runInTransaction } from "@/server/db/client";
+import { runInSession } from "@/server/db/client";
 import { createAccount, listAccounts } from "@/server/repositories/accounts";
 import { createCategory, listCategories } from "@/server/repositories/categories";
 import { completeUserOnboarding, updateUserProfile } from "@/server/repositories/users";
@@ -25,14 +25,14 @@ export async function applyOnboarding(
     throw new Error("Pilih minimal satu kategori pemasukan dan satu kategori pengeluaran.");
   }
 
-  await runInTransaction(db, async (tx) => {
-    await updateUserProfile(tx, userId, {
+  await runInSession(db, async (client) => {
+    await updateUserProfile(client, userId, {
       displayName: input.displayName
     });
 
-    const existingAccounts = await listAccounts(tx, userId, true);
+    const existingAccounts = await listAccounts(client, userId, true);
     if (existingAccounts.length === 0) {
-      await createAccount(tx, userId, {
+      await createAccount(client, userId, {
         name: input.accountName,
         type: input.accountType,
         color: input.accountColor,
@@ -40,17 +40,17 @@ export async function applyOnboarding(
       });
     }
 
-    const existingCategories = await listCategories(tx, userId, true);
+    const existingCategories = await listCategories(client, userId, true);
     if (existingCategories.length === 0) {
       for (const category of selectedCategories) {
-        await createCategory(tx, userId, {
+        await createCategory(client, userId, {
           ...category,
           isSystem: true
         });
       }
     }
 
-    await completeUserOnboarding(tx, userId);
+    await completeUserOnboarding(client, userId);
   });
 }
 

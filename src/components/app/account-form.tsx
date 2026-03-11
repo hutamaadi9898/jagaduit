@@ -62,7 +62,7 @@ export function AccountForm({ account }: { account?: Account | null }) {
           id="type"
           name="type"
           defaultValue={account?.type ?? "cash"}
-          className="h-12 w-full rounded-[1.2rem] border border-border bg-white/80 px-4 text-sm"
+          className="h-12 w-full rounded-[1.2rem] border border-border bg-card/80 px-4 text-sm"
         >
           {accountTypes.map((option) => (
             <option key={option.value} value={option.value}>
@@ -77,7 +77,7 @@ export function AccountForm({ account }: { account?: Account | null }) {
           {colorOptions.map((color) => (
             <label
               key={color}
-              className="flex cursor-pointer items-center gap-2 rounded-full border border-border bg-white px-3 py-2"
+              className="flex cursor-pointer items-center gap-2 rounded-full border border-border bg-card/90 px-3 py-2 text-foreground"
             >
               <input type="radio" name="color" value={color} defaultChecked={(account?.color ?? "#f97316") === color} />
               <span className="h-4 w-4 rounded-full" style={{ backgroundColor: color }} />
