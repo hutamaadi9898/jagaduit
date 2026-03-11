@@ -1,0 +1,29 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { AuthForm } from "@/components/app/auth-form";
+
+if (Astro.locals.isAuthenticated) {
+  return Astro.redirect("/app");
+}
+---
+
+<BaseLayout title="Masuk | KitaCuan">
+  <main class="mx-auto flex min-h-screen max-w-6xl items-center px-4 py-8 sm:px-6">
+    <div class="grid w-full gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+      <section class="glass-card relative overflow-hidden rounded-[2.4rem] p-6 sm:p-8">
+        <div class="noise-overlay absolute inset-0"></div>
+        <div class="relative">
+          <p class="text-xs font-semibold uppercase tracking-[0.28em] text-primary/70">Masuk ke flow uangmu</p>
+          <h1 class="mt-4 text-4xl font-bold">Dashboard rapi untuk cashflow yang sering bocor diam-diam.</h1>
+          <p class="mt-4 max-w-md text-muted-foreground">
+            Begitu login, kamu langsung dapat ringkasan bulan berjalan, histori transaksi, dan shortcut untuk tambah catatan baru.
+          </p>
+          <a class="mt-8 inline-flex rounded-full bg-foreground px-4 py-2 font-semibold text-white" href="/register">Belum punya akun?</a>
+        </div>
+      </section>
+      <div class="lg:pt-12">
+        <AuthForm mode="login" client:load />
+      </div>
+    </div>
+  </main>
+</BaseLayout>

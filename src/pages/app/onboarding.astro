@@ -1,0 +1,40 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { OnboardingForm } from "@/components/app/onboarding-form";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { starterCategories } from "@/server/constants/categories";
+
+if (!Astro.locals.user) {
+  return Astro.redirect("/login");
+}
+---
+
+<BaseLayout title="Onboarding | KitaCuan">
+  <main class="mx-auto flex min-h-screen max-w-5xl items-center px-4 py-8 sm:px-6">
+    <div class="grid w-full gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+      <section class="glass-card relative overflow-hidden rounded-[2.4rem] p-6 sm:p-8">
+        <div class="noise-overlay absolute inset-0"></div>
+        <div class="relative">
+          <p class="text-xs font-semibold uppercase tracking-[0.28em] text-primary/70">First run setup</p>
+          <h1 class="mt-4 text-4xl font-bold">Rapikan akun pertama dan pilih kategori starter yang memang kepakai.</h1>
+          <p class="mt-4 max-w-md text-muted-foreground">
+            Setup ini cuma sekali. Setelah itu kamu langsung masuk dashboard dengan akun utama aktif dan kategori yang relevan.
+          </p>
+        </div>
+      </section>
+      <Card>
+        <CardHeader>
+          <CardTitle>Siapkan workspace finansialmu</CardTitle>
+          <CardDescription>Nama panggilan, akun pertama, lalu starter kategori buat pemasukan dan pengeluaran.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <OnboardingForm
+            displayName={Astro.locals.user.displayName}
+            starterCategories={starterCategories}
+            client:load
+          />
+        </CardContent>
+      </Card>
+    </div>
+  </main>
+</BaseLayout>

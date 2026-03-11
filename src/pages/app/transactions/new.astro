@@ -1,0 +1,103 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import AppLayout from "@/layouts/AppLayout.astro";
+import RouteErrorState from "@/components/app/route-error-state.astro";
+import { TransactionForm } from "@/components/app/transaction-form";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { getDb } from "@/server/db/client";
+import { logError } from "@/server/observability";
+import { getDefaultAccount, listAccounts } from "@/server/repositories/accounts";
+import { listCategories } from "@/server/repositories/categories";
+import { getTransactionById, listRecentTransactions } from "@/server/repositories/transactions";
+import type { Account, Category, TransactionWithRelations } from "@/types/app";
+
+if (!Astro.locals.user) {
+  return Astro.redirect("/login");
+}
+
+const db = getDb(Astro.locals);
+let accounts: Account[] = [];
+let categories: Category[] = [];
+let transaction: TransactionWithRelations | null = null;
+let recentDefaults: {
+  kind: "income" | "expense";
+  accountId?: string;
+  categoryByKind: Partial<Record<"income" | "expense", string>>;
+} | null = null;
+let hasDefaultAccount = false;
+let loadError: string | null = null;
+
+try {
+  accounts = await listAccounts(db, Astro.locals.user.id, false);
+  categories = await listCategories(db, Astro.locals.user.id, false);
+  const editId = Astro.url.searchParams.get("edit");
+  transaction = editId ? await getTransactionById(db, Astro.locals.user.id, editId) : null;
+  const recentTransactions = await listRecentTransactions(db, Astro.locals.user.id, 6);
+  const latest = recentTransactions[0];
+
+  recentDefaults = latest
+    ? {
+        kind: latest.kind,
+        accountId: latest.accountId,
+        categoryByKind: recentTransactions.reduce((acc, item) => {
+          if (!acc[item.kind]) {
+            acc[item.kind] = item.categoryId;
+          }
+          return acc;
+        }, {} as Partial<Record<"income" | "expense", string>>)
+      }
+    : null;
+  hasDefaultAccount = Boolean(await getDefaultAccount(db, Astro.locals.user.id));
+} catch (error) {
+  loadError = "Form transaksi belum bisa dimuat.";
+  logError("transaction_form_page_load_failed", error, { userId: Astro.locals.user.id });
+}
+---
+
+<BaseLayout title="Transaksi baru | KitaCuan">
+  <AppLayout title={transaction ? "Edit transaksi" : "Tambah transaksi"} currentPath="/app/transactions">
+    {
+      loadError ? (
+        <RouteErrorState title="Form transaksi belum siap" message={loadError} />
+      ) : !transaction && !hasDefaultAccount ? (
+        <section class="mx-auto max-w-2xl">
+          <Card>
+            <CardHeader>
+              <CardTitle>Aktifkan akun utama dulu</CardTitle>
+              <CardDescription>Transaksi baru butuh satu akun utama aktif supaya flow logging tetap konsisten.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm text-muted-foreground">
+              <p>Pilih atau buat akun yang jadi default dulu, baru lanjut tambah transaksi.</p>
+              <a class="inline-flex rounded-full bg-foreground px-4 py-2 font-semibold text-white" href="/app/accounts">
+                Atur akun utama
+              </a>
+            </CardContent>
+          </Card>
+        </section>
+      ) : (
+        <section class="mx-auto max-w-2xl">
+          <Card>
+            <CardHeader>
+              <CardTitle>{transaction ? "Perbarui transaksi" : "Catat transaksi baru"}</CardTitle>
+              <CardDescription>Flow cepat untuk pemasukan dan pengeluaran, tetap rapi di layar kecil.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {!transaction && recentDefaults ? (
+                <div class="rounded-[1.4rem] bg-primary/8 px-4 py-3 text-sm text-foreground">
+                  Default form mengikuti transaksi terakhirmu biar repeat logging lebih cepat.
+                </div>
+              ) : null}
+              <TransactionForm
+                accounts={accounts}
+                categories={categories}
+                transaction={transaction}
+                recentDefaults={recentDefaults}
+                client:load
+              />
+            </CardContent>
+          </Card>
+        </section>
+      )
+    }
+  </AppLayout>
+</BaseLayout>

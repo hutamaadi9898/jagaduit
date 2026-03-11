@@ -1,0 +1,56 @@
+---
+import { Home, Layers3, ReceiptText, Settings2, WalletCards } from "lucide-react";
+
+import { APP_NAME } from "@/server/constants/categories";
+
+const { title = APP_NAME, currentPath = Astro.url.pathname } = Astro.props;
+
+const navItems = [
+  { href: "/app", label: "Ringkasan", icon: Home },
+  { href: "/app/transactions", label: "Transaksi", icon: ReceiptText },
+  { href: "/app/accounts", label: "Akun", icon: WalletCards },
+  { href: "/app/categories", label: "Kategori", icon: Layers3 },
+  { href: "/app/settings", label: "Atur", icon: Settings2 }
+];
+---
+
+<div class="relative min-h-screen overflow-hidden px-4 pb-28 pt-5 sm:px-6">
+  <div class="noise-overlay pointer-events-none absolute inset-0"></div>
+  <div class="mx-auto flex max-w-6xl flex-col gap-6">
+    <header class="glass-card relative flex items-start justify-between rounded-[2rem] px-5 py-4">
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-[0.28em] text-primary/70">{APP_NAME}</p>
+        <h1 class="mt-2 text-3xl font-bold text-foreground">{title}</h1>
+      </div>
+      <form method="POST" action="/api/auth/logout">
+        <button class="rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-white">Keluar</button>
+      </form>
+    </header>
+
+    <main class="pb-8">
+      <slot />
+    </main>
+  </div>
+
+  <nav class="fixed inset-x-0 bottom-4 z-20 mx-auto flex max-w-md justify-between rounded-[1.8rem] border border-white/70 bg-white/85 px-4 py-3 shadow-[0_22px_45px_rgba(65,43,28,0.14)] backdrop-blur-xl">
+    {
+      navItems.map((item) => {
+        const Icon = item.icon;
+        const active = currentPath === item.href || (item.href !== "/app" && currentPath.startsWith(item.href));
+
+        return (
+          <a
+            href={item.href}
+            class:list={[
+              "flex min-w-14 flex-col items-center gap-1 rounded-2xl px-2 py-1.5 text-[11px] font-semibold",
+              active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+            ]}
+          >
+            <Icon className="h-4 w-4" />
+            <span>{item.label}</span>
+          </a>
+        );
+      })
+    }
+  </nav>
+</div>

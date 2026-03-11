@@ -8,14 +8,44 @@
 		"preview": "astro build && wrangler dev",
 		"astro": "astro",
 		"deploy": "astro build && wrangler deploy",
-		"cf-typegen": "wrangler types"
+		"cf-typegen": "wrangler types",
+		"db:migrate:local": "wrangler d1 execute expense-tracker-db --local --file=./migrations/0001_initial.sql && wrangler d1 execute expense-tracker-db --local --file=./migrations/0002_user_onboarding.sql",
+		"db:seed:local": "wrangler d1 execute expense-tracker-db --local --file=./migrations/seed_local.sql",
+		"db:migrate:remote": "wrangler d1 execute expense-tracker-db --remote --file=./migrations/0001_initial.sql && wrangler d1 execute expense-tracker-db --remote --file=./migrations/0002_user_onboarding.sql",
+		"typecheck": "astro check",
+		"test": "vitest run --coverage",
+		"test:watch": "vitest"
 	},
 	"dependencies": {
 		"@astrojs/cloudflare": "^12.6.12",
-		"astro": "^5.17.1"
+		"@astrojs/react": "^4.4.2",
+		"@radix-ui/react-dialog": "^1.1.15",
+		"@radix-ui/react-dropdown-menu": "^2.1.16",
+		"@radix-ui/react-label": "^2.1.8",
+		"@radix-ui/react-slot": "^1.2.4",
+		"@radix-ui/react-tabs": "^1.1.13",
+		"@radix-ui/react-toast": "^1.2.15",
+		"@tailwindcss/vite": "^4.2.1",
+		"astro": "^5.17.1",
+		"class-variance-authority": "^0.7.1",
+		"clsx": "^2.1.1",
+		"framer-motion": "^12.35.0",
+		"lucia": "^3.2.2",
+		"lucide-react": "^0.577.0",
+		"react": "^19.2.4",
+		"react-dom": "^19.2.4",
+		"tailwind-merge": "^3.5.0",
+		"tailwindcss": "^4.2.1",
+		"zod": "^3.25.76"
 	},
 	"devDependencies": {
+		"@astrojs/check": "^0.9.6",
 		"@types/node": "^25.3.5",
+		"@types/react": "^19.2.14",
+		"@types/react-dom": "^19.2.3",
+		"@vitest/coverage-v8": "^4.0.18",
+		"typescript": "^5.9.3",
+		"vitest": "^4.0.18",
 		"wrangler": "^4.71.0"
 	}
 }

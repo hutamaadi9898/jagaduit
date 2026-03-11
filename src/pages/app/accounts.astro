@@ -1,0 +1,104 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import AppLayout from "@/layouts/AppLayout.astro";
+import { AccountForm } from "@/components/app/account-form";
+import { MutationButton } from "@/components/app/mutation-button";
+import RouteErrorState from "@/components/app/route-error-state.astro";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { accountTypeLabels } from "@/server/constants/categories";
+import { getDb } from "@/server/db/client";
+import { logError } from "@/server/observability";
+import { listAccounts } from "@/server/repositories/accounts";
+import type { Account } from "@/types/app";
+
+if (!Astro.locals.user) {
+  return Astro.redirect("/login");
+}
+
+let accounts: Account[] = [];
+let loadError: string | null = null;
+
+try {
+  accounts = await listAccounts(getDb(Astro.locals), Astro.locals.user.id, true);
+} catch (error) {
+  loadError = "Data akun belum bisa dimuat sekarang.";
+  logError("accounts_page_load_failed", error, { userId: Astro.locals.user.id });
+}
+
+const editId = Astro.url.searchParams.get("edit");
+const editing = accounts.find((item) => item.id === editId) ?? null;
+---
+
+<BaseLayout title="Akun | KitaCuan">
+  <AppLayout title="Kelola akun" currentPath={Astro.url.pathname}>
+    {
+      loadError ? (
+        <RouteErrorState title="Akun belum tersedia" message={loadError} />
+      ) : (
+    <section class="grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
+      <Card>
+        <CardHeader>
+          <CardTitle>{editing ? "Edit akun" : "Tambah akun baru"}</CardTitle>
+          <CardDescription>Dompet, bank, dan e-wallet dipisah biar cashflow lebih kebaca.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <AccountForm account={editing} client:load />
+        </CardContent>
+      </Card>
+
+      <div class="grid gap-4">
+        {
+          accounts.map((account) => (
+            <Card>
+              <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div class="flex items-start gap-4">
+                  <span class="mt-1 h-4 w-4 rounded-full" style={`background:${account.color}`}></span>
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <p class="text-lg font-semibold">{account.name}</p>
+                      {account.isDefault ? <Badge>Utama</Badge> : null}
+                      {account.isArchived ? <Badge variant="outline">Arsip</Badge> : null}
+                    </div>
+                    <p class="text-sm text-muted-foreground">{accountTypeLabels[account.type]}</p>
+                  </div>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                  {!account.isArchived ? (
+                    <MutationButton
+                      endpoint={`/api/accounts/${account.id}`}
+                      method="PATCH"
+                      body={{ name: account.name, type: account.type, color: account.color, isDefault: true }}
+                      variant="outline"
+                      size="sm"
+                      client:load
+                    >
+                      Jadikan utama
+                    </MutationButton>
+                  ) : null}
+                  <a class="inline-flex h-10 items-center rounded-2xl border border-border bg-white/80 px-3 text-xs font-semibold" href={`/app/accounts?edit=${account.id}`}>
+                    Edit
+                  </a>
+                  {!account.isArchived ? (
+                    <MutationButton
+                      endpoint={`/api/accounts/${account.id}`}
+                      method="DELETE"
+                      variant="destructive"
+                      size="sm"
+                      confirmMessage="Arsipkan akun ini?"
+                      client:load
+                    >
+                      Arsipkan
+                    </MutationButton>
+                  ) : null}
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        }
+      </div>
+    </section>
+      )
+    }
+  </AppLayout>
+</BaseLayout>

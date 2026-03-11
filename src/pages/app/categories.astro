@@ -1,0 +1,100 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import AppLayout from "@/layouts/AppLayout.astro";
+import { CategoryForm } from "@/components/app/category-form";
+import { MutationButton } from "@/components/app/mutation-button";
+import RouteErrorState from "@/components/app/route-error-state.astro";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { getDb } from "@/server/db/client";
+import { logError } from "@/server/observability";
+import { listCategories } from "@/server/repositories/categories";
+import type { Category } from "@/types/app";
+
+if (!Astro.locals.user) {
+  return Astro.redirect("/login");
+}
+
+let categories: Category[] = [];
+let loadError: string | null = null;
+
+try {
+  categories = await listCategories(getDb(Astro.locals), Astro.locals.user.id, true);
+} catch (error) {
+  loadError = "Kategori belum bisa dimuat sekarang.";
+  logError("categories_page_load_failed", error, { userId: Astro.locals.user.id });
+}
+
+const editId = Astro.url.searchParams.get("edit");
+const editing = categories.find((item) => item.id === editId) ?? null;
+---
+
+<BaseLayout title="Kategori | KitaCuan">
+  <AppLayout title="Kelola kategori" currentPath={Astro.url.pathname}>
+    {
+      loadError ? (
+        <RouteErrorState title="Kategori belum tersedia" message={loadError} />
+      ) : (
+    <section class="grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
+      <Card>
+        <CardHeader>
+          <CardTitle>{editing ? "Edit kategori" : "Tambah kategori"}</CardTitle>
+          <CardDescription>Jaga struktur kategori tetap ringkas tapi cukup personal.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <CategoryForm category={editing} client:load />
+        </CardContent>
+      </Card>
+
+      <div class="grid gap-4">
+        {
+          ["expense", "income"].map((kind) => (
+            <Card>
+              <CardHeader>
+                <CardTitle>{kind === "expense" ? "Pengeluaran" : "Pemasukan"}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {categories
+                  .filter((item) => item.kind === kind)
+                  .map((category) => (
+                    <div class="flex flex-col gap-4 rounded-[1.6rem] bg-muted/70 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div class="flex items-center gap-3">
+                        <span class="h-3 w-3 rounded-full" style={`background:${category.color}`}></span>
+                        <div>
+                          <div class="flex items-center gap-2">
+                            <p class="font-semibold">{category.name}</p>
+                            {category.isSystem ? <Badge variant="secondary">Starter</Badge> : null}
+                            {category.isArchived ? <Badge variant="outline">Arsip</Badge> : null}
+                          </div>
+                          <p class="text-xs text-muted-foreground">{category.icon}</p>
+                        </div>
+                      </div>
+                      <div class="flex gap-2">
+                        <a class="inline-flex h-10 items-center rounded-2xl border border-border bg-white/80 px-3 text-xs font-semibold" href={`/app/categories?edit=${category.id}`}>
+                          Edit
+                        </a>
+                        {!category.isArchived ? (
+                          <MutationButton
+                            endpoint={`/api/categories/${category.id}`}
+                            method="DELETE"
+                            variant="destructive"
+                            size="sm"
+                            confirmMessage="Arsipkan kategori ini?"
+                            client:load
+                          >
+                            Arsipkan
+                          </MutationButton>
+                        ) : null}
+                      </div>
+                    </div>
+                  ))}
+              </CardContent>
+            </Card>
+          ))
+        }
+      </div>
+    </section>
+      )
+    }
+  </AppLayout>
+</BaseLayout>

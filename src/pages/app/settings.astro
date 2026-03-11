@@ -1,0 +1,50 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import AppLayout from "@/layouts/AppLayout.astro";
+import { SettingsForm } from "@/components/app/settings-form";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
+if (!Astro.locals.user) {
+  return Astro.redirect("/login");
+}
+---
+
+<BaseLayout title="Pengaturan | KitaCuan">
+  <AppLayout title="Pengaturan akun" currentPath={Astro.url.pathname}>
+    <section class="grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
+      <Card>
+        <CardHeader>
+          <Badge>Profil</Badge>
+          <CardTitle className="mt-3">Personal preferences</CardTitle>
+          <CardDescription>Bahasa Indonesia, IDR-only, dan timezone Jakarta jadi default MVP.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <SettingsForm user={Astro.locals.user} client:load />
+        </CardContent>
+      </Card>
+
+      <div class="grid gap-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Status MVP</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm text-muted-foreground">
+            <p>Mode saat ini fokus untuk personal finance tracking. Belum ada budget, recurring, atau shared wallet.</p>
+            <p>Data utama tersimpan di D1. KV hanya dipakai untuk cache ringkasan dashboard dan throttle login.</p>
+            <p>Semua nominal masih difokuskan ke Rupiah tanpa multi-currency.</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Keamanan akun</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm text-muted-foreground">
+            <p>Session disimpan via cookie `HttpOnly`, `Secure` saat production, dan `SameSite=Lax`.</p>
+            <p>Password reset dan email verification belum masuk scope MVP.</p>
+          </CardContent>
+        </Card>
+      </div>
+    </section>
+  </AppLayout>
+</BaseLayout>

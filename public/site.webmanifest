@@ -1,0 +1,10 @@
+{
+  "name": "KitaCuan",
+  "short_name": "KitaCuan",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fbf7f1",
+  "theme_color": "#ec6641",
+  "lang": "id",
+  "description": "Aplikasi web untuk catat pemasukan dan pengeluaran dengan cepat."
+}

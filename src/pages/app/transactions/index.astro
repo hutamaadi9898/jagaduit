@@ -1,0 +1,157 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import AppLayout from "@/layouts/AppLayout.astro";
+import { MutationButton } from "@/components/app/mutation-button";
+import RouteErrorState from "@/components/app/route-error-state.astro";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatCurrency, formatDateLabel, monthFromDate } from "@/lib/utils";
+import { getDb } from "@/server/db/client";
+import { logError } from "@/server/observability";
+import { listAccounts } from "@/server/repositories/accounts";
+import { listCategories } from "@/server/repositories/categories";
+import { listTransactions } from "@/server/repositories/transactions";
+import { transactionFiltersSchema } from "@/server/validation";
+import type { Account, Category, TransactionWithRelations } from "@/types/app";
+
+if (!Astro.locals.user) {
+  return Astro.redirect("/login");
+}
+
+const filters = transactionFiltersSchema.parse({
+  month: Astro.url.searchParams.get("month") ?? monthFromDate(),
+  kind: Astro.url.searchParams.get("kind") ?? "all",
+  accountId: Astro.url.searchParams.get("accountId") ?? undefined,
+  categoryId: Astro.url.searchParams.get("categoryId") ?? undefined,
+  query: Astro.url.searchParams.get("query") ?? undefined
+});
+
+const db = getDb(Astro.locals);
+let accounts: Account[] = [];
+let categories: Category[] = [];
+let transactions: TransactionWithRelations[] = [];
+let loadError: string | null = null;
+
+try {
+  accounts = await listAccounts(db, Astro.locals.user.id, false);
+  categories = await listCategories(db, Astro.locals.user.id, false);
+  transactions = await listTransactions(db, Astro.locals.user.id, filters);
+} catch (error) {
+  loadError = "Histori transaksi belum bisa dimuat dari D1.";
+  logError("transactions_page_load_failed", error, {
+    userId: Astro.locals.user.id,
+    month: filters.month
+  });
+}
+
+const groupedTransactions = Object.entries(
+  transactions.reduce<Record<string, typeof transactions>>((acc, transaction) => {
+    acc[transaction.transactionDate] ??= [];
+    acc[transaction.transactionDate].push(transaction);
+    return acc;
+  }, {})
+);
+---
+
+<BaseLayout title="Transaksi | KitaCuan">
+  <AppLayout title="Histori transaksi" currentPath={Astro.url.pathname}>
+    {
+      loadError ? (
+        <RouteErrorState title="Histori lagi gangguan" message={loadError} />
+      ) : (
+    <section class="grid gap-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>Filter bulan aktif</CardTitle>
+          <CardDescription>Simpan filter di URL supaya tampilan gampang diulang.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5" method="GET">
+            <input class="h-12 rounded-[1.2rem] border border-border bg-white/80 px-4 text-sm" type="month" name="month" value={filters.month} />
+            <select class="h-12 rounded-[1.2rem] border border-border bg-white/80 px-4 text-sm" name="kind">
+              <option value="all" selected={filters.kind === "all"}>Semua</option>
+              <option value="expense" selected={filters.kind === "expense"}>Pengeluaran</option>
+              <option value="income" selected={filters.kind === "income"}>Pemasukan</option>
+            </select>
+            <select class="h-12 rounded-[1.2rem] border border-border bg-white/80 px-4 text-sm" name="accountId">
+              <option value="">Semua akun</option>
+              {accounts.map((account) => <option value={account.id} selected={filters.accountId === account.id}>{account.name}</option>)}
+            </select>
+            <select class="h-12 rounded-[1.2rem] border border-border bg-white/80 px-4 text-sm" name="categoryId">
+              <option value="">Semua kategori</option>
+              {categories.map((category) => <option value={category.id} selected={filters.categoryId === category.id}>{category.name}</option>)}
+            </select>
+            <input class="h-12 rounded-[1.2rem] border border-border bg-white/80 px-4 text-sm" type="search" name="query" value={filters.query} placeholder="Cari catatan..." />
+            <button class="rounded-[1.2rem] bg-primary px-4 py-3 font-semibold text-primary-foreground sm:col-span-2 lg:col-span-5">Terapkan filter</button>
+          </form>
+        </CardContent>
+      </Card>
+
+      <div class="flex justify-end">
+        <a class="rounded-[1.2rem] bg-foreground px-4 py-3 text-sm font-semibold text-white" href="/app/transactions/new">Tambah transaksi</a>
+      </div>
+
+      {
+        groupedTransactions.length === 0 ? (
+          <Card>
+            <CardContent className="py-10 text-center text-muted-foreground">
+              <p class="font-semibold text-foreground">Belum ada transaksi untuk filter ini.</p>
+              <p class="mt-2">Coba ganti filter atau langsung tambah transaksi baru buat mulai isi histori.</p>
+              <a class="mt-4 inline-flex rounded-full bg-foreground px-4 py-2 text-xs font-semibold text-white" href="/app/transactions/new">
+                Tambah transaksi
+              </a>
+            </CardContent>
+          </Card>
+        ) : (
+          groupedTransactions.map(([date, items]) => (
+            <Card>
+              <CardHeader>
+                <CardTitle>{formatDateLabel(date)}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {items.map((item) => (
+                  <article class="flex flex-col gap-3 rounded-[1.6rem] bg-muted/70 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="flex items-center gap-3">
+                      <span class="h-3 w-3 rounded-full" style={`background:${item.categoryColor}`}></span>
+                      <div>
+                        <div class="flex items-center gap-2">
+                          <p class="font-semibold">{item.categoryName}</p>
+                          <Badge variant={item.kind === "income" ? "secondary" : "default"}>
+                            {item.kind === "income" ? "Pemasukan" : "Pengeluaran"}
+                          </Badge>
+                        </div>
+                        <p class="text-sm text-muted-foreground">{item.accountName} • {item.note || "Tanpa catatan"}</p>
+                      </div>
+                    </div>
+                    <div class="flex flex-col items-start gap-2 sm:items-end">
+                      <p class:list={["text-lg font-bold", item.kind === "income" ? "text-green-600" : "text-destructive"]}>
+                        {item.kind === "income" ? "+" : "-"}{formatCurrency(item.amountMinor)}
+                      </p>
+                      <div class="flex gap-2">
+                        <a class="inline-flex h-10 items-center rounded-2xl border border-border bg-white/80 px-3 text-xs font-semibold" href={`/app/transactions/new?edit=${item.id}`}>
+                          Edit
+                        </a>
+                        <MutationButton
+                          endpoint={`/api/transactions/${item.id}`}
+                          method="DELETE"
+                          variant="destructive"
+                          size="sm"
+                          confirmMessage="Hapus transaksi ini?"
+                          client:load
+                        >
+                          Hapus
+                        </MutationButton>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </CardContent>
+            </Card>
+          ))
+        )
+      }
+    </section>
+      )
+    }
+  </AppLayout>
+</BaseLayout>

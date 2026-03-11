@@ -17,7 +17,24 @@
 	},
 	"observability": {
 		"enabled": true
-	}
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "expense-tracker-db",
+			"database_id": "da2ac4e6-28a3-4f6e-9b10-2f4b46a53ce2"
+		}
+	],
+	"kv_namespaces": [
+		{
+			"binding": "APP_KV",
+			"id": "734bf840f1d6403787c0cc92fbd5537a"
+		},
+		{
+			"binding": "SESSION",
+			"id": "9eee133d6e584cd6a7c5700082de62d8"
+		}
+	],
 	/**
 	 * Smart Placement
 	 * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
@@ -35,7 +52,9 @@
 	 * Note: Use secrets to store sensitive data.
 	 * https://developers.cloudflare.com/workers/configuration/secrets/
 	 */
-	// "vars": {  "MY_VARIABLE": "production_value" }
+	"vars": {
+		"APP_NAME": "KitaCuan"
+	},
 	/**
 	 * Service Bindings (communicate between multiple Workers)
 	 * https://developers.cloudflare.com/workers/wrangler/configuration/#service-bindings

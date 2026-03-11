@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Bricolage Grotesque", sans-serif;
+  --font-body: "Plus Jakarta Sans", sans-serif;
+
+  --color-background: oklch(0.985 0.012 85);
+  --color-foreground: oklch(0.255 0.03 248);
+  --color-card: oklch(0.994 0.005 82);
+  --color-card-foreground: oklch(0.255 0.03 248);
+  --color-popover: oklch(0.994 0.005 82);
+  --color-popover-foreground: oklch(0.255 0.03 248);
+  --color-primary: oklch(0.645 0.205 26);
+  --color-primary-foreground: oklch(0.985 0.01 82);
+  --color-secondary: oklch(0.845 0.103 152);
+  --color-secondary-foreground: oklch(0.245 0.03 248);
+  --color-muted: oklch(0.94 0.02 85);
+  --color-muted-foreground: oklch(0.48 0.04 248);
+  --color-accent: oklch(0.87 0.12 93);
+  --color-accent-foreground: oklch(0.22 0.025 248);
+  --color-destructive: oklch(0.62 0.216 25);
+  --color-destructive-foreground: oklch(0.98 0.006 83);
+  --color-border: oklch(0.87 0.018 85);
+  --color-input: oklch(0.87 0.018 85);
+  --color-ring: oklch(0.645 0.205 26);
+  --color-success: oklch(0.72 0.16 152);
+  --color-warning: oklch(0.83 0.14 86);
+
+  --radius-sm: 0.75rem;
+  --radius-md: 1.25rem;
+  --radius-lg: 1.75rem;
+  --radius-xl: 2.25rem;
+
+  --shadow-soft: 0 18px 50px rgba(74, 43, 8, 0.08);
+  --shadow-float: 0 26px 80px rgba(236, 102, 65, 0.18);
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-body);
+  }
+
+  body {
+    @apply min-h-screen bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.88),_transparent_55%),linear-gradient(180deg,_rgba(255,241,214,0.92),_rgba(251,247,241,1))] text-foreground;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.03em;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  a {
+    @apply transition-colors duration-200;
+  }
+}
+
+@layer utilities {
+  .shell-grid {
+    background-image:
+      linear-gradient(rgba(236, 102, 65, 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(236, 102, 65, 0.08) 1px, transparent 1px);
+    background-size: 30px 30px;
+  }
+
+  .glass-card {
+    @apply border border-white/60 bg-white/75 backdrop-blur-xl;
+    box-shadow: var(--shadow-soft);
+  }
+
+  .headline-balance {
+    background: linear-gradient(120deg, rgba(236, 102, 65, 1), rgba(93, 194, 137, 1));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .noise-overlay::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.15;
+    background-image:
+      radial-gradient(circle at 20% 20%, rgba(236, 102, 65, 0.25) 0, transparent 24%),
+      radial-gradient(circle at 80% 30%, rgba(104, 201, 153, 0.22) 0, transparent 26%),
+      radial-gradient(circle at 50% 80%, rgba(255, 204, 102, 0.2) 0, transparent 22%);
+    mix-blend-mode: multiply;
+  }
+}

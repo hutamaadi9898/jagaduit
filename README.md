@@ -1,43 +1,80 @@
-# Astro Starter Kit: Minimal
+# KitaCuan
 
-```sh
-npm create astro@latest -- --template minimal
+Mobile-first expense and income tracker for Gen-Z Indonesia, built with Astro SSR on Cloudflare Workers.
+
+## Stack
+- Astro + Cloudflare adapter
+- React islands
+- Tailwind CSS v4
+- shadcn-style UI primitives
+- Framer Motion
+- Lucia session auth with a D1-backed adapter
+- Cloudflare D1 + KV
+
+## Features in this MVP
+- Email/password auth
+- Protected dashboard
+- Starter onboarding data for accounts and Indonesian categories
+- Accounts, categories, and transaction CRUD
+- Monthly dashboard summary with KV cache
+- Login throttling with KV
+
+## Local setup
+1. Install dependencies:
+
+```bash
+npm install
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+2. Remote Cloudflare resources are already wired in [wrangler.jsonc](/d:/Laravel/expense-tracker/wrangler.jsonc):
+- `DB`: `expense-tracker-db`
+- `APP_KV`: `expense-tracker-app-kv`
+- `SESSION`: `expense-tracker-session-kv`
 
-## 🚀 Project Structure
+3. Apply local migrations:
 
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+```bash
+npm run db:migrate:local
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+4. Seed isolated local demo data when needed:
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+```bash
+npm run db:seed:local
+```
 
-Any static assets, like images, can be placed in the `public/` directory.
+Demo account:
+- Email: `demo@kitacuan.app`
+- Password: `demo12345`
 
-## 🧞 Commands
+5. Apply remote migrations before the first deploy:
 
-All commands are run from the root of the project, from a terminal:
+```bash
+npm run db:migrate:remote
+```
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+6. Regenerate Cloudflare types whenever bindings change:
 
-## 👀 Want to learn more?
+```bash
+npm run cf-typegen
+```
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+7. Run the app:
+
+```bash
+npm run dev
+```
+
+## Useful commands
+- `npm run typecheck`
+- `npm run test`
+- `npm run build`
+- `npm run preview`
+- `npm run deploy`
+
+## Notes
+- D1 is the source of truth.
+- `APP_KV` is used for dashboard cache and login throttling.
+- `SESSION` is reserved for Astro Cloudflare session support required by the adapter runtime.
+- Local D1 seeding only targets Wrangler's `--local` database, so demo data stays isolated from production.
+- Password reset, email verification, recurring transactions, and budgets are intentionally out of MVP scope.

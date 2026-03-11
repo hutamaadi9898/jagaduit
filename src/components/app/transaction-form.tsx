@@ -1,0 +1,171 @@
+import { LoaderCircle } from "lucide-react";
+import { useMemo, useState } from "react";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import type { Account, Category, TransactionWithRelations } from "@/types/app";
+
+type TransactionFormProps = {
+  accounts: Account[];
+  categories: Category[];
+  transaction?: TransactionWithRelations | null;
+  recentDefaults?: {
+    kind: "income" | "expense";
+    accountId?: string;
+    categoryByKind: Partial<Record<"income" | "expense", string>>;
+  } | null;
+};
+
+export function TransactionForm({
+  accounts,
+  categories,
+  transaction,
+  recentDefaults
+}: TransactionFormProps) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const defaultKind = transaction?.kind ?? recentDefaults?.kind ?? "expense";
+  const [kind, setKind] = useState(defaultKind);
+  const defaultAccountId =
+    transaction?.accountId ??
+    recentDefaults?.accountId ??
+    accounts.find((item) => item.isDefault)?.id;
+  const defaultCategoryId =
+    transaction?.categoryId ??
+    recentDefaults?.categoryByKind?.[defaultKind] ??
+    categories.find((category) => category.kind === defaultKind && !category.isArchived)?.id;
+
+  const filteredCategories = useMemo(
+    () => categories.filter((category) => category.kind === kind && !category.isArchived),
+    [categories, kind]
+  );
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    const formData = new FormData(event.currentTarget);
+    const payload: Record<string, string | number> = {
+      ...Object.fromEntries(formData.entries()),
+      amountMinor: Number(formData.get("amountMinor"))
+    };
+
+    const response = await fetch(transaction ? `/api/transactions/${transaction.id}` : "/api/transactions", {
+      method: transaction ? "PATCH" : "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = (await response.json().catch(() => null)) as { message?: string } | null;
+
+    if (!response.ok) {
+      setError(data?.message ?? "Transaksi gagal disimpan.");
+      setLoading(false);
+      return;
+    }
+
+    const targetMonth = String(formData.get("transactionDate") ?? "").slice(0, 7);
+    window.location.href = `/app/transactions?month=${targetMonth}`;
+  }
+
+  return (
+    <form className="space-y-4" onSubmit={handleSubmit}>
+      <div className="space-y-2">
+        <Label htmlFor="kind">Jenis transaksi</Label>
+        <select
+          id="kind"
+          name="kind"
+          defaultValue={defaultKind}
+          onChange={(event) => setKind(event.target.value as "income" | "expense")}
+          className="h-12 w-full rounded-[1.2rem] border border-border bg-white/80 px-4 text-sm"
+        >
+          <option value="expense">Pengeluaran</option>
+          <option value="income">Pemasukan</option>
+        </select>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="amountMinor">Nominal</Label>
+        <Input
+          id="amountMinor"
+          name="amountMinor"
+          type="number"
+          inputMode="numeric"
+          min={1}
+          defaultValue={transaction?.amountMinor}
+          placeholder="50000"
+          required
+        />
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-2">
+          <Label htmlFor="accountId">Akun</Label>
+          <select
+            id="accountId"
+            name="accountId"
+            defaultValue={defaultAccountId}
+            className="h-12 w-full rounded-[1.2rem] border border-border bg-white/80 px-4 text-sm"
+          >
+            {accounts
+              .filter((account) => !account.isArchived)
+              .map((account) => (
+                <option key={account.id} value={account.id}>
+                  {account.name}
+                </option>
+              ))}
+          </select>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="categoryId">Kategori</Label>
+          <select
+            key={kind}
+            id="categoryId"
+            name="categoryId"
+            defaultValue={
+              transaction?.categoryId ??
+              recentDefaults?.categoryByKind?.[kind] ??
+              defaultCategoryId ??
+              filteredCategories[0]?.id
+            }
+            className="h-12 w-full rounded-[1.2rem] border border-border bg-white/80 px-4 text-sm"
+          >
+            {filteredCategories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="transactionDate">Tanggal</Label>
+        <Input
+          id="transactionDate"
+          name="transactionDate"
+          type="date"
+          defaultValue={transaction?.transactionDate ?? new Date().toISOString().slice(0, 10)}
+          required
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="note">Catatan</Label>
+        <Textarea
+          id="note"
+          name="note"
+          defaultValue={transaction?.note ?? ""}
+          placeholder="Contoh: kopi sore, bonus freelance, atau bayar listrik"
+        />
+      </div>
+      {error ? <p className="text-sm font-medium text-destructive">{error}</p> : null}
+      <Button className="w-full" disabled={loading}>
+        {loading ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
+        {transaction ? "Update Transaksi" : "Simpan Transaksi"}
+      </Button>
+    </form>
+  );
+}
